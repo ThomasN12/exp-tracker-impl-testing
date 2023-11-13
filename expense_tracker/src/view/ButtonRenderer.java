@@ -22,6 +22,7 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
 
   public ButtonRenderer(DefaultTableModel model) {
     this.model = model;
+    setText("Undo");
     setOpaque(true);
   }
 
@@ -39,7 +40,6 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
       setForeground(table.getForeground());
       setBackground(table.getBackground());
     }
-    setText("Undo");
     return this;
   }
 }
