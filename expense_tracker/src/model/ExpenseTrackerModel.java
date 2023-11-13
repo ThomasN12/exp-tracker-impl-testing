@@ -27,13 +27,8 @@ public class ExpenseTrackerModel {
   }
 
   // Removes transaction at `idx`. Returns true if success, false otherwise.
-  public boolean removeTransaction(int idx) {
-    try {
-      transactions.remove(idx);
-    } catch (Exception e) {
-      return false;
-    }
-    return true;
+  public void removeTransaction(int idx) {
+    transactions.remove(idx);
   }
 
   public List<Transaction> getTransactions() {

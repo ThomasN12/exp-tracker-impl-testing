@@ -53,11 +53,9 @@ public class ExpenseTrackerController {
     return true;
   }
 
-  // Remove transaction at `transactionIdx` in the list.
-  public boolean removeTransaction(int transactionIdx) {
-    if (!model.removeTransaction(transactionIdx)) {
-      return false;
-    }
+  // Undo transaction at `transactionIdx` in the list.
+  public void undo(int transactionIdx) throws IndexOutOfBoundsException {
+    model.removeTransaction(transactionIdx);
     // Replay `refresh()` logic without removing old rows so:
     // - Less overhead (of inserting all rows from start)
     // - Allow events of the removed row, e.g. MouseEvent, to be fired gracefully.
@@ -68,21 +66,12 @@ public class ExpenseTrackerController {
       totalCost += t.getAmount();
     }
     DefaultTableModel table = view.getTableModel();
-    // Remove row on UI model. Since removal on model worked, so will this.
+    // Remove row on UI model.
     table.removeRow(transactionIdx);
     // Remove old total row.
     table.removeRow(table.getRowCount() - 1);
     Object[] totalRow = { "Total", null, null, totalCost };
     table.addRow(totalRow);
-    return true;
-  }
-
-  public boolean undo(int transactionIdx) {
-    if (!removeTransaction(transactionIdx)) {
-      JOptionPane.showMessageDialog(view, "Cannot remove this transaction.");
-      return false;
-    }
-    return true;
   }
 
   public void applyFilter() {
