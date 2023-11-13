@@ -7,7 +7,9 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.JOptionPane;
 
 import java.text.ParseException;
 
@@ -91,6 +93,12 @@ public class HW3Test {
         view.toFront();
     }});
 
+        // Inject the undo function to each Undo button in transactions.
+        view.setupUndo(transactionIdx -> {
+            if (!controller.removeTransaction(transactionIdx)) {
+                JOptionPane.showMessageDialog(view, "Cannot remove this transaction.");
+            }
+        });
     }
 
     public double getTotalCost() {
@@ -124,7 +132,7 @@ public class HW3Test {
     public void testHighlightRows(DefaultTableModel tableModel, JTable transactionTable, List<Integer> rowIndexes) {
         Color expectedColor = new Color(173, 255, 168);
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            for (int j = 0; j < tableModel.getColumnCount(); j++) {
+            for (int j = 0; j < tableModel.getColumnCount() - 1; j++) {
                 TableCellRenderer renderer = transactionTable.getCellRenderer(i, j);
                 Component component = transactionTable.prepareRenderer(renderer, i, j);
                 Color cellColor = component.getBackground();
@@ -251,6 +259,67 @@ public class HW3Test {
         }
         testHighlightRows(tableModel, transactionTable, rowIndexes);
     }
+
+    // @Test(expected = IllegalStateException.class)
+    // public void testUndoDisallowed() {
+    //     controller.undoLastTransaction();
+    // }
+    public void addTransactionByView(double amount, String category) {
+        JFormattedTextField amountField = new JFormattedTextField();
+        amountField.setValue(Double.valueOf(amount));
+        JTextField categoryField = new JTextField(category);
+        view.setAmountField(amountField);
+        view.setCategoryField(categoryField);
+        view.getAddTransactionBtn().doClick();
+    }
+
+public void clickUndoButton(JTable table, int row) {
+    // Assuming "Undo" is the header of the column with the undo buttons
+    TableCellEditor cellEditor = table.getColumn("Undo").getCellEditor();
+    // int undoColumn = table.getColumnModel().getColumnIndex("Undo");
+
+    // // Check if the row and column are valid
+    // if (row < 0 || row >= table.getRowCount() || undoColumn < 0) {
+    //     throw new IllegalArgumentException("Row or column out of bounds");
+    // }
+
+    // // Start editing the cell, which should be configured to trigger the undo action
+    // table.editCellAt(row, undoColumn);
+
+    // // Optionally, you can retrieve the editor and invoke any specific methods on it
+    // TableCellEditor editor = table.getCellEditor(row, undoColumn);
+    // if (editor != null) {
+    //     // Stopping cell editing usually triggers the action bound to the button
+    //     editor.stopCellEditing();
+    // }
+
+    table.editCellAt(row, table.getColumnModel().getColumnIndex("Undo"));
+}
+
+    // @Test
+    // public void testUndoAllowed() {
+    //     // Pre-condition: List of transactions is empty and total cost is 0
+    //     assertEquals(0.0, getTotalCost(), 0.01);
+    //     controller.addTransaction(20.00, "food");
+    //     controller.addTransaction(30.00, "travel");
+    //     controller.addTransaction(40.00, "other");
+    //     controller.addTransaction(50.00, "travel");
+
+    //     // Perform the action: Add a transaction
+    //     // addTransactionByView(30.00, "other");
+    //     // Thread.sleep(1000);
+    //     // addTransactionByView(20.00, "entertainment");
+    //     // Thread.sleep(1000);
+    //     // addTransactionByView(10.00, "bills");
+    //     JTable transactionTable = view.getTransactionsTable();
+    //     System.out.println(getTotalCost());
+    //     clickUndoButton(transactionTable, 1);
+    //     System.out.println(getTotalCost());
+    //     // int lastRowIndex = tableModel.getRowCount() - 2;
+    //     // assertEquals("50.0", tableModel.getValueAt(lastRowIndex, 1).toString());
+    //     // assertEquals("food", tableModel.getValueAt(lastRowIndex, 2).toString());
+    //     // assertEquals("50.0", tableModel.getValueAt(lastRowIndex+1, 3).toString());
+    // }
 
     // @After
     // public void tearDown() {
