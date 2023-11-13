@@ -2,10 +2,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 
 import java.text.ParseException;
 
@@ -17,6 +19,7 @@ import model.ExpenseTrackerModel;
 import model.Transaction;
 import model.Filter.AmountFilter;
 import model.Filter.CategoryFilter;
+import model.Filter.TransactionFilter;
 import view.ExpenseTrackerView;
 
 import javax.swing.*;
@@ -117,7 +120,19 @@ public class HW3Test {
         // They may differ by 60 ms
         assertTrue(nowDate.getTime() - transactionDate.getTime() < 60000);
     }
-
+    
+    public void testHighlightRows(DefaultTableModel tableModel, JTable transactionTable, List<Integer> rowIndexes) {
+        Color expectedColor = new Color(173, 255, 168);
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            for (int j = 0; j < tableModel.getColumnCount(); j++) {
+                TableCellRenderer renderer = transactionTable.getCellRenderer(i, j);
+                Component component = transactionTable.prepareRenderer(renderer, i, j);
+                Color cellColor = component.getBackground();
+                // It's the highlighted row <=> the color of a random cell of that row must be equal to expected light green
+                assertTrue(rowIndexes.contains(i) == cellColor.equals(expectedColor));
+            }
+        }
+    }
     @Test
     public void testAddTransaction() {
         // Create JFormattedTextField objects for amount and category
@@ -137,4 +152,110 @@ public class HW3Test {
         assertEquals("food", tableModel.getValueAt(lastRowIndex, 2).toString());
         assertEquals("50.0", tableModel.getValueAt(lastRowIndex+1, 3).toString());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTransactionConstructorWithInvalidAmount1() {
+        model.addTransaction(new Transaction(-50.00, "food"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTransactionConstructorWithInvalidAmount2() {
+        model.addTransaction(new Transaction(1001.00, "food"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTransactionConstructorWithInvalidCategory() {
+        model.addTransaction(new Transaction(50.00, "something"));
+    }
+
+    @Test
+    public void testTransactionWithInvalidInput() {
+        // Pre-condition: The total cost is initially 0
+        assertEquals(0.0, getTotalCost(), 0.01);
+        // Perform the action: Add invalid transactions
+        boolean result = controller.addTransaction(-50.00, "food");
+        assertEquals(false, result);
+        result = controller.addTransaction(50.00, "something");
+        assertEquals(false, result);
+        // Post-condition: The total cost must remain unchanged
+        assertEquals(0.0, getTotalCost(), 0.01);
+    }
+
+    @Test
+    public void testFilterByAmount() {
+        DefaultTableModel tableModel = view.getTableModel();
+        JTable transactionTable = view.getTransactionsTable();
+        // Pre-condition: List of transactions is empty and total cost is 0
+        assertEquals(0, model.getTransactions().size());
+        assertEquals(0, tableModel.getRowCount());
+        // Perform the action: Add 4 transactions and apply filtering
+        controller.addTransaction(50.00, "food");
+        controller.addTransaction(50.00, "travel");
+        controller.addTransaction(20.00, "transport");
+        controller.addTransaction(50.00, "bills");
+        List<Transaction> allTransactions = model.getTransactions();
+        double amountFiltered = 50.00;
+        TransactionFilter filter = new AmountFilter(amountFiltered);
+        List<Transaction> filteredTransactions = filter.filter(allTransactions);
+
+        assertEquals(3, filteredTransactions.size());
+        for (Transaction transaction : filteredTransactions) {
+            assertEquals(amountFiltered, transaction.getAmount(), 0.01);
+        }
+
+        // Additional test via View - Check Highlight rows:
+        controller.setFilter(filter);
+        controller.applyFilter();
+        List<Integer> rowIndexes = new ArrayList<>();
+        for (Transaction t : filteredTransactions) {
+            int rowIndex = allTransactions.indexOf(t);
+            if (rowIndex != -1) {
+              rowIndexes.add(rowIndex);
+            }
+        }
+        testHighlightRows(tableModel, transactionTable, rowIndexes);
+    }
+
+    
+    @Test
+    public void testFilterByCategory() {
+        DefaultTableModel tableModel = view.getTableModel();
+        JTable transactionTable = view.getTransactionsTable();
+        // Pre-condition: List of transactions is empty and total cost is 0
+        assertEquals(0, model.getTransactions().size());
+        assertEquals(0, tableModel.getRowCount());
+        // Perform the action: Add 4 transactions and apply filtering
+        controller.addTransaction(20.00, "food");
+        controller.addTransaction(30.00, "travel");
+        controller.addTransaction(40.00, "transport");
+        controller.addTransaction(50.00, "travel");
+        List<Transaction> allTransactions = model.getTransactions();
+        String categoryFiltered = "travel";
+        TransactionFilter filter = new CategoryFilter(categoryFiltered);
+        List<Transaction> filteredTransactions = filter.filter(allTransactions);
+
+        assertEquals(2, filteredTransactions.size());
+        for (Transaction transaction : filteredTransactions) {
+            assertEquals(categoryFiltered, transaction.getCategory());
+        }
+
+        // Additional test via View - Check Highlight rows:
+        controller.setFilter(filter);
+        controller.applyFilter();
+        List<Integer> rowIndexes = new ArrayList<>();
+        for (Transaction t : filteredTransactions) {
+            int rowIndex = allTransactions.indexOf(t);
+            if (rowIndex != -1) {
+              rowIndexes.add(rowIndex);
+            }
+        }
+        testHighlightRows(tableModel, transactionTable, rowIndexes);
+    }
+
+    // @After
+    // public void tearDown() {
+    //     model = null;
+    //     view = null;
+    //     controller = null;
+    // }
 }
