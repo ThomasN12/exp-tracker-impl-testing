@@ -257,16 +257,13 @@ public class HW3Test {
         testHighlightRows(tableModel, transactionTable, rowIndexes);
     }
 
-    @Test
+    @Test(expected = IndexOutOfBoundsException.class)
     public void testUndoDisallowed() {
         // Pre-condition: the list of transaction if empty
         assertEquals(0, model.getTransactions().size());
         // Perform the action: Undo the last transaction
-        boolean res = controller.undo(0);
-        // Post-condition: The result must be False
-        assertTrue(!res);
-        res = controller.undo(1);
-        assertTrue(!res);
+        controller.undo(0);
+        // Post-condition: Exception is thrown
     }
 
     @Test
@@ -280,14 +277,14 @@ public class HW3Test {
         controller.addTransaction(50.00, "travel");
         assertEquals(140.0, getTotalCost(), 0.01);
         List<Transaction> originalTransactions = model.getTransactions();
-        boolean res = controller.undo(1);
-        assertTrue(res);
-        res = controller.undo(1);
-        assertTrue(res);
+        controller.undo(1);
+        controller.undo(1);
         List<Transaction> newTransactions = model.getTransactions();
         assertEquals(newTransactions.size(), 2);
         // Post-condition: After remove the first and second transaction, the transaction at index 1 currently was the transaction at index 3 in the original list. The total cost will be updated.
         assertTrue(originalTransactions.get(3) == newTransactions.get(1));
+        assertTrue(newTransactions.get(0).getAmount() == 20.00 && newTransactions.get(0).getCategory().equals("food"));
+        assertTrue(newTransactions.get(1).getAmount() == 50.00 && newTransactions.get(1).getCategory().equals("travel"));
         assertEquals(70.00, getTotalCost(), 0.01);
     }
 
