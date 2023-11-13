@@ -69,9 +69,7 @@ public class ExpenseTrackerApp {
 
     // Inject the undo function to each Undo button in transactions.
     view.setupUndo(transactionIdx -> {
-      if (!controller.removeTransaction(transactionIdx)) {
-        JOptionPane.showMessageDialog(view, "Cannot remove this transaction.");
-      }
+      controller.undo(transactionIdx);
     });
   }
 }

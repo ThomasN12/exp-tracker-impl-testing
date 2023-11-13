@@ -77,6 +77,14 @@ public class ExpenseTrackerController {
     return true;
   }
 
+  public boolean undo(int transactionIdx) {
+    if (!removeTransaction(transactionIdx)) {
+      JOptionPane.showMessageDialog(view, "Cannot remove this transaction.");
+      return false;
+    }
+    return true;
+  }
+
   public void applyFilter() {
     // null check for filter
     if (filter != null) {
