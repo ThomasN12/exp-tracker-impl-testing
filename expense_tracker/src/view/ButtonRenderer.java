@@ -32,6 +32,13 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
     if (row == model.getRowCount() - 1) {
       return null;
     }
+    if (isSelected) {
+      setForeground(table.getSelectionForeground());
+      setBackground(table.getSelectionBackground());
+    } else {
+      setForeground(table.getForeground());
+      setBackground(table.getBackground());
+    }
     setText("Undo");
     return this;
   }
@@ -65,6 +72,13 @@ class ButtonEditor extends DefaultCellEditor {
       boolean isSelected, int row, int column) {
     if (row == table.getRowCount() - 1) {
       return null;
+    }
+    if (isSelected) {
+      button.setForeground(table.getSelectionForeground());
+      button.setBackground(table.getSelectionBackground());
+    } else {
+      button.setForeground(table.getForeground());
+      button.setBackground(table.getBackground());
     }
     return button;
   }
