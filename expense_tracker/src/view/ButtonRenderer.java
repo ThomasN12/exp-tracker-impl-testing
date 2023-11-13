@@ -3,6 +3,9 @@ package view;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
@@ -18,8 +21,8 @@ class ButtonRenderer extends JButton implements TableCellRenderer {
   private DefaultTableModel model;
 
   public ButtonRenderer(DefaultTableModel model) {
-    setOpaque(true);
     this.model = model;
+    setOpaque(true);
   }
 
   // When the cell is rendered, a JButton is returned and shown.
@@ -42,11 +45,13 @@ class ButtonEditor extends DefaultCellEditor {
     super(new JCheckBox());
     button = new JButton();
     button.setText("Undo");
+
     button.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         // Perform the row removal action
         int row = table.getEditingRow();
+        fireEditingStopped();
         stopCellEditing();
         undoCallback.accept(row);
       }

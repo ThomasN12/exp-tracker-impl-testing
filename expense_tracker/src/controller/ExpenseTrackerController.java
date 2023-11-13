@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 import model.ExpenseTrackerModel;
 import model.Transaction;
@@ -57,7 +58,22 @@ public class ExpenseTrackerController {
     if (!model.removeTransaction(transactionIdx)) {
       return false;
     }
-    view.getTableModel().removeRow(transactionIdx);
+    // Replay `refresh()` logic without removing old rows so:
+    // - Less overhead (of inserting all rows from start)
+    // - Allow events of the removed row, e.g. MouseEvent, to be fired gracefully.
+    List<Transaction> transactions = model.getTransactions();
+    double totalCost = 0;
+    // Remove and insert new Total row.
+    for (Transaction t : transactions) {
+      totalCost += t.getAmount();
+    }
+    DefaultTableModel table = view.getTableModel();
+    // Remove row on UI model. Since removal on model worked, so will this.
+    table.removeRow(transactionIdx);
+    // Remove old total row.
+    table.removeRow(table.getRowCount() - 1);
+    Object[] totalRow = { "Total", null, null, totalCost };
+    table.addRow(totalRow);
     return true;
   }
 
